@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KARLO_PADH_AI | Topic Wise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .correct { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+        .wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        #certificate-container { width: 800px; height: 600px; background: white; border: 20px solid #1e293b; color: #1e293b; margin: auto; }
+        @media print { body * { visibility: hidden; } #cert-modal-content, #cert-modal-content * { visibility: visible; } #cert-modal-content { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+    <div id="app" class="max-w-2xl mx-auto px-4 py-12">
+        <!-- VIEW: NAME ENTRY -->
+        <div id="view-name" class="bg-white p-10 rounded-3xl shadow-sm border text-center">
+            <h1 class="text-4xl font-bold text-blue-600 mb-2">KARLO_PADH_AI</h1>
+            <p class="text-slate-500 mb-8 italic">PADHAI KE LIYE TAIYAAR?</p>
+            <input type="text" id="user-name" placeholder="Enter Full Name" class="w-full p-4 border rounded-xl mb-4 text-center text-lg outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="saveName()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-all">Begin Journey</button>
+        </div>
+
+        <!-- VIEW: SELECTION -->
+        <div id="view-selection" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-slate-700">Select a Subject</h2>
+            <div class="grid grid-cols-2 gap-4" id="subject-grid"></div>
+            <div class="mt-8 border-t pt-6">
+                <button onclick="toggleCustomInput()" class="w-full p-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold hover:border-blue-500 hover:text-blue-600 transition-all">
+                    <i class="fas fa-plus mr-2"></i> ENTER CUSTOM TOPIC
+                </button>
+                <div id="custom-input-area" class="hidden mt-4 space-y-3">
+                    <input type="text" id="custom-topic-input" placeholder="e.g. Space Science, History..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500">
+                    <button onclick="startCustomQuiz()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold"> Quiz Generate ho raha hai</button>
+                </div>
+            </div>
+        </div>
+   
+        <!-- VIEW: MODULES -->
+        <div id="view-modules" class="hidden space-y-6">
+            <div class="flex items-center gap-4 mb-4">
+                <button onclick="showView('view-selection')" class="text-blue-600 font-bold p-2 hover:bg-blue-50 rounded-full transition-all">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-slate-700">Select <span id="module-sub-title" class="text-blue-600"></span> Module</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-3" id="module-grid"></div>
+        </div>
+
+        <!-- VIEW: LOADING -->
+        <div id="view-loading" class="hidden flex flex-col items-center py-20 text-center">
+            <div class="loader"></div>
+            <p class="mt-4 font-bold text-slate-600 italic uppercase">AI is crafting your quiz...</p>
+        </div>
+
+        <!-- VIEW: QUIZ -->
+        <div id="view-quiz" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-blue-600 p-4 rounded-2xl text-white">
+                <div class="font-bold uppercase" id="quiz-header-title"></div>
+                <div class="font-black">Score: <span id="live-score">0</span></div>
+            </div>
+            <div class="bg-white p-8 rounded-3xl shadow-sm border min-h-[400px]">
+                <h3 id="question-text" class="text-xl font-bold mb-8"></h3>
+                <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+                <div id="explanation-box" class="hidden mt-8 p-6 bg-blue-50 border border-blue-200 rounded-2xl">
+                    <p class="text-xs font-bold text-blue-600 uppercase mb-1">Gyaan Kosh</p>
+                    <p id="explanation-text" class="text-slate-700 italic text-sm mb-6"></p>
+                    <button onclick="nextQuestion()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold">Next Question</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: RESULTS -->
+        <div id="view-results" class="hidden bg-white p-10 rounded-3xl border shadow-sm text-center space-y-6">
+            <h2 class="text-3xl font-bold">Module Complete</h2>
+            <div id="ai-feedback" class="p-5 bg-blue-50 text-blue-800 rounded-xl italic font-medium">Analyzing...</div>
+            <div class="text-6xl font-black text-slate-800"><span id="final-score">0</span> / 3</div>
+            <div id="cert-area" class="hidden p-6 bg-yellow-50 border-2 border-dashed border-yellow-300 rounded-2xl">
+                <p class="font-bold text-yellow-800 mb-4">🏆 Congratulations! You've earned a certificate.</p>
+                <button onclick="openCert()" class="w-full py-4 bg-yellow-500 text-white rounded-xl font-black">VIEW CERTIFICATE</button>
+            </div>
+            <button onclick="location.reload()" class="text-slate-400 font-bold hover:underline uppercase text-xs">Restart</button>
+        </div>
+    </div>
+
+    <!-- CERTIFICATE MODAL -->
+    <div id="cert-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4">
+        <div class="max-w-4xl w-full" id="cert-modal-content">
+            <div id="certificate-container">
+                <div class="border-[5px] border-yellow-400 h-full flex flex-col items-center justify-between p-12 text-center">
+                    <h1 class="text-5xl font-bold italic" style="font-family:'Playfair Display'">Certificate of Excellence</h1>
+                    <div>
+                        <p class="italic text-slate-400">Certified that</p>
+                        <h2 id="cert-name" class="text-4xl font-bold italic border-b-2 px-16 inline-block mb-4" style="font-family:'Playfair Display'"></h2>
+                        <p class="mt-4">has successfully mastered</p>
+                        <h3 id="cert-subject" class="text-2xl font-bold text-blue-700 mt-2 uppercase"></h3>
+                    </div>
+                    <div class="w-full flex justify-between px-16 font-bold text-sm">
+                        <div><p id="cert-date"></p><p class="border-t text-[10px]">DATE</p></div>
+                        <div class="text-yellow-500 text-3xl"><i class="fas fa-medal"></i></div>
+                        <div><p id="cert-score"></p><p class="border-t text-[10px]">SCORE</p></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 flex gap-4 justify-center no-print">
+                <button onclick="window.print()" class="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold shadow-lg">Print / Save PDF</button>
+                <button onclick="document.getElementById('cert-modal').classList.add('hidden')" class="text-white">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:3000";
+        const SUBJECTS_DATA = {
+            'DBMS': ['Relational Algebra', 'SQL Queries', 'Normalization'],
+            'C Language': ['Data Types', 'Loops', 'Pointers'],
+            'Python': ['Lists', 'Functions', 'Dictionary']
+        };
+
+        let quiz = [], index = 0, score = 0, user = "", currentSubject = "", currentModule = "";
+
+        window.onload = () => {
+            const grid = document.getElementById('subject-grid');
+            Object.keys(SUBJECTS_DATA).forEach(s => {
+                grid.innerHTML += `<button onclick="selectSubject('${s}')" class="p-6 bg-white border-2 rounded-2xl hover:border-blue-500 hover:bg-blue-50 font-bold transition-all transform hover:-translate-y-1">${s}</button>`;
+            });
+        };
+
+        function showView(id) {
+            ['view-name', 'view-selection', 'view-modules', 'view-loading', 'view-quiz', 'view-results'].forEach(v => {
+                document.getElementById(v).classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function saveName() {
+            user = document.getElementById('user-name').value.trim();
+            if(!user) return alert("Name is required!");
+            showView('view-selection');
+        }
+
+        function selectSubject(s) {
+            currentSubject = s;
+            document.getElementById('module-sub-title').innerText = s;
+            const grid = document.getElementById('module-grid');
+            grid.innerHTML = '';
+            SUBJECTS_DATA[s].forEach(m => {
+                grid.innerHTML += `<button onclick="startQuiz('${m}')" class="p-4 bg-white border rounded-xl hover:bg-blue-50 text-left font-semibold flex justify-between items-center transition-all"><span>${m}</span><i class="fas fa-chevron-right text-slate-300"></i></button>`;
+            });
+            showView('view-modules');
+        }
+
+        function toggleCustomInput() { document.getElementById('custom-input-area').classList.toggle('hidden'); }
+
+        function startCustomQuiz() {
+            const topic = document.getElementById('custom-topic-input').value.trim();
+            if(!topic) return alert("Enter a topic!");
+            currentSubject = "Custom Topic";
+            startQuiz(topic);
+        }
+
+        async function startQuiz(moduleOrTopic) {
+            currentModule = moduleOrTopic;
+            showView('view-loading');
+            try {
+                const sub = currentSubject === "Custom Topic" ? moduleOrTopic : currentSubject;
+                const res = await fetch(`${API}/quiz?subject=${encodeURIComponent(sub)}&module=${encodeURIComponent(moduleOrTopic)}`);
+                quiz = await res.json();
+                index = 0; score = 0;
+                document.getElementById('quiz-header-title').innerText = moduleOrTopic;
+                document.getElementById('live-score').innerText = "0";
+                render();
+                showView('view-quiz');
+            } catch(e) { 
+                alert("Server Error! Ensure node server.js is running."); 
+                showView('view-selection'); 
+            }
+        }
+
+        function render() {
+            const q = quiz[index];
+            document.getElementById('question-text').innerText = q.question;
+            document.getElementById('explanation-box').classList.add('hidden');
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 border rounded-xl font-medium transition-all hover:bg-slate-50";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    const btns = container.children;
+                    for(let b of btns) b.disabled = true;
+                    if(i === q.answer) { 
+                        btn.classList.add('correct'); score++; 
+                        document.getElementById('live-score').innerText = score; 
+                    } else { 
+                        btn.classList.add('wrong'); btns[q.answer].classList.add('correct'); 
+                    }
+                    document.getElementById('explanation-text').innerText = q.explanation;
+                    document.getElementById('explanation-box').classList.remove('hidden');
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function nextQuestion() {
+            if(index < quiz.length - 1) { index++; render(); }
+            else finish();
+        }
+
+        async function finish() {
+            showView('view-results');
+            document.getElementById('final-score').innerText = score;
+            if((score/quiz.length) >= 0.85) document.getElementById('cert-area').classList.remove('hidden');
+            try {
+                const res = await fetch(`${API}/feedback`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ score, total: quiz.length, subject: currentSubject, module: currentModule })
+                });
+                const d = await res.json();
+                document.getElementById('ai-feedback').innerText = d.feedback;
+            } catch(e) { document.getElementById('ai-feedback').innerText = "Module complete!"; }
+        }
+
+        function openCert() {
+            document.getElementById('cert-name').innerText = user;
+            document.getElementById('cert-subject').innerText = currentModule;
+            document.getElementById('cert-score').innerText = Math.round((score/quiz.length)*100) + "%";
+            document.getElementById('cert-date').innerText = new Date().toLocaleDateString();
+            document.getElementById('cert-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
