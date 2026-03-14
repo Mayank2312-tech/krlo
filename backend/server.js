@@ -36,7 +36,7 @@ const server = http.createServer(async (req, res) => {
             // UPDATED: Using gemini-2.5-flash which is the current stable workhorse
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             
-            const prompt = `Generate exactly 3 MCQs for subject ${subject} and module ${module}. 
+            const prompt = `Generate exactly 15 MCQs and for subject ${subject} and module ${module}. 
             Return ONLY a valid JSON array: [{"question":"text", "options":["a","b","c","d"], "answer":0, "explanation":"text"}]`;
             
             const result = await model.generateContent(prompt);
