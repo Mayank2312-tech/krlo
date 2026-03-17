@@ -71,7 +71,7 @@ const server = http.createServer(async (req, res) => {
     }
 });
 
-const PORT = 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 KARLO_PADH_AI Server chal raha hai on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT,"0.0.0.0", () => {
+    console.log(`🚀 KARLO_PADH_AI Server chal raha hai on ${PORT}`);
 });
